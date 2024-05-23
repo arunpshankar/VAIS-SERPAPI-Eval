@@ -1,9 +1,12 @@
-from typing import List, Dict, Optional
+
 from google.cloud import discoveryengine_v1beta as discoveryengine
 from google.api_core.client_options import ClientOptions
 from google.protobuf import json_format
 from src.config.logging import logger 
 from src.config.setup import config
+from typing import Optional
+from typing import List
+from typing import Dict 
 
 
 LOCATION = "global" 
