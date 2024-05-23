@@ -1,131 +1,114 @@
+from typing import Optional, Dict, Any, List
+import requests
+import logging
+import yaml
 
-from google.cloud import discoveryengine_v1beta as discoveryengine
-from google.api_core.client_options import ClientOptions
-from google.protobuf import json_format
-from src.config.logging import logger 
-from src.config.setup import config
-from typing import Optional
-from typing import List
-from typing import Dict 
+logging.basicConfig(level=logging.INFO)
 
-
-LOCATION = "global" 
-
-
-def search_data_store(search_query: str, data_store_id: str) -> Optional[discoveryengine.SearchResponse]:
+def load_api_key(file_path: str) -> Optional[str]:
     """
-    Search the data store using Google Cloud's Discovery Engine API.
-    Args:
-        search_query (str): The search query string.
+    Load the API key from a YAML file.
+
+    Parameters:
+        file_path (str): The path to the YAML file containing the API key.
+
     Returns:
-        Optional[discoveryengine.SearchResponse]: The search response from the Discovery Engine API.
+        Optional[str]: The API key if found, otherwise None.
     """
     try:
-        client_options = (
-            ClientOptions(api_endpoint=f"{LOCATION}-discoveryengine.googleapis.com")
-            if LOCATION != "global"
-            else None
-        )
-
-        client = discoveryengine.SearchServiceClient(client_options=client_options)
-
-        serving_config = client.serving_config_path(
-            project=config.PROJECT_ID,
-            location=LOCATION,
-            data_store=data_store_id,
-            serving_config="default_config",
-        )
-
-        content_search_spec = discoveryengine.SearchRequest.ContentSearchSpec(
-            snippet_spec=discoveryengine.SearchRequest.ContentSearchSpec.SnippetSpec(
-                return_snippet=True
-            )
-        )
-
-        request = discoveryengine.SearchRequest(
-            serving_config=serving_config,
-            query=search_query,
-            page_size=10,
-            content_search_spec=content_search_spec,
-            query_expansion_spec=discoveryengine.SearchRequest.QueryExpansionSpec(
-                condition=discoveryengine.SearchRequest.QueryExpansionSpec.Condition.AUTO,
-            ),
-            spell_correction_spec=discoveryengine.SearchRequest.SpellCorrectionSpec(
-                mode=discoveryengine.SearchRequest.SpellCorrectionSpec.Mode.AUTO
-            ),
-        )
-
-        response = client.search(request)
-        return response
-
+        with open(file_path, 'r') as file:
+            config = yaml.safe_load(file)
+            logging.info("API key loaded successfully.")
+            return config['serphouse']['key']
     except Exception as e:
-        logger.error(f"Error during data store search: {e}")
+        logging.error(f"Error loading API key: {e}")
         return None
 
 
-def extract_relevant_data(response: Optional[discoveryengine.SearchResponse]) -> List[Dict[str, str]]:
+def fetch_search_results(query: str) -> Dict[str, Any]:
     """
-    Extracts title, snippet, and link from the search response.
-    Args:
-        response (Optional[discoveryengine.SearchResponse]): The search response object from the Discovery Engine API.
+    Fetch search results from the SerpHouse API for a given query.
+
+    Parameters:
+        query (str): The search query.
+
     Returns:
-        List[Dict[str, str]]: A list of dictionaries containing the extracted information.
+        Dict[str, Any]: The JSON response from the API.
+
+    Raises:
+        Exception: If the API call fails or returns an unexpected response.
     """
-    extracted_data = []
-
-    if response is None:
-        logger.error("No response received to extract data.")
-        return extracted_data
-
-    for result in response.results:
-        data = {
-            "title": "",
-            "snippet": "",
-            "link": ""
+    url = "https://api.serphouse.com/serp/live"
+    payload = {
+        "data": {
+            "q": query,
+            "domain": "google.com",
+            "lang": "en",
+            "device": "desktop",
+            "serp_type": "web",
+            "loc": "United States",
+            "verbatim": "0",
+            "gfilter": "0",
+            "page": "1",
+            "num_result": "10"
         }
+    }
+    api_key = load_api_key('./credentials/keys.yaml')
 
-        # Convert protocol buffer message to JSON
-        result_json = json_format.MessageToDict(result.document._pb)
+    if not api_key:
+        raise ValueError("API key is missing.")
 
-        # Extracting fields from JSON
-        struct_data = result_json.get('structData', {})
-        derived_struct_data = result_json.get('derivedStructData', {})
+    headers = {
+        'accept': "application/json",
+        'content-type': "application/json",
+        'authorization': f"Bearer {api_key}"
+    }
 
-        # Extracting title
-        title = derived_struct_data.get("title")
-        if title:
-            data["title"] = title
-
-        # Extracting snippet
-        snippets = derived_struct_data.get("snippets")
-        if snippets:
-            data["snippet"] = snippets[0]['snippet']
-
-        # Extracting link
-        link = derived_struct_data.get("link")
-        if link:
-            data["link"] = link
-
-        extracted_data.append(data)
-
-    return extracted_data
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        response.raise_for_status()  # Raises an HTTPError for bad responses
+        logging.info("Search results fetched successfully.")
+        return response.json()
+    except requests.RequestException as e:
+        logging.error(f"Failed to fetch search results: {e}")
+        raise
 
 
-def get(query: str, data_store_id: str) -> List[Dict[str, str]]:
+def process_results(response: Dict[str, Any]) -> List[Dict[str, str]]:
     """
-    Retrieves and returns the top search results for a given query from the data store.
-    Args:
-        query (str): Search query.
-        data_store_id (str): Unique identifier of the data store.
+    Process the search results and extract title, snippet, and link.
+
+    Parameters:
+        response (Dict[str, Any]): The JSON response from the API.
+
     Returns:
-        List[Dict[str, str]]: A list containing the search results.
+        List[Dict[str, str]]: A list of dictionaries containing title, snippet, and link.
     """
-    response = search_data_store(query, data_store_id)
-    return extract_relevant_data(response)
+    try:
+        results = response['results']['results']['organic']
+        processed_results = []
+        for item in results:
+            result = {
+                'title': item['title'],
+                'snippet': item['snippet'],
+                'link': item['link']
+            }
+            processed_results.append(result)
+        logging.info("Search results processed successfully.")
+        return processed_results
+    except KeyError as e:
+        logging.error(f"Error processing results: {e}")
+        raise
 
 
 if __name__ == "__main__":
-    query = "ViaSat, Inc. Sustainability Report 2023 filetype:pdf site:investors.viasat.com"
-    data_store_id = "vais-serp-evals-2_1716478907619"
-    results = get(query, data_store_id)
-    print(results)
+    query = "procter and gamble annual report 2023 site:assets.ctfassets.net"
+    try:
+        response = fetch_search_results(query)
+        results = process_results(response)
+        print(results)
+        for result in results:
+            print(result)
+            print('-' * 100)
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")

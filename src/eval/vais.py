@@ -8,7 +8,7 @@ import csv
 import os 
 
 
-DATA_STORE_ID = 'vais-serp-evals-2_1716478907619'
+DATA_STORE_ID = 'vais-serp-evals-cdn_1716473240944'
 
 
 def ensure_directory(path: str) -> None:
@@ -60,6 +60,6 @@ def evaluate(input_path: str, output_path: str) -> None:
 
 
 if __name__ == "__main__":
-    input_csv_path = "./data/test-2.csv"
-    output_jsonl_path = "./data/vais-batch-2-results.jsonl"
+    input_csv_path = "./data/test-cdn.csv"
+    output_jsonl_path = "./data/vais-cdn-results.jsonl"
     evaluate(input_csv_path, output_jsonl_path)
