@@ -6,6 +6,18 @@ __pycache__/
 # C extensions
 *.so
 
+# DS_Store
+.DS_Store
+.DS_Store/
+
+# credentials 
+credentials
+credentials/
+
+# virtual env 
+.vais-serphouse-eval 
+.vais-serphouse-eval/
+
 # Distribution / packaging
 .Python
 build/
