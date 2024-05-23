@@ -45,6 +45,7 @@ def fetch_search_results(query: str) -> Dict[str, Any]:
         }
     }
     api_key = load_api_key('./credentials/keys.yaml')
+    
     headers = {
         'accept': "application/json",
         'content-type': "application/json",
@@ -60,6 +61,16 @@ def fetch_search_results(query: str) -> Dict[str, Any]:
         raise
 
 if __name__ == "__main__":
-    query = "annual report filetype:pdf site:chase.com/"
-    results = fetch_search_results(query)
-    print(results)
+    query = "procter and gamble annual rpeort 2023 site:assets.ctfassets.net"
+    response = fetch_search_results(query)
+    results = response['results']['results']['organic']
+    for item in results:
+        rank = item['position']
+        title = item['title']
+        url = item['link']
+        snippet = item['snippet']
+        print(rank, title)
+        print(url)
+        print(snippet)
+        print('-' * 100)
+
