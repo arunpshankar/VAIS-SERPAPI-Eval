@@ -60,9 +60,9 @@ def save_to_csv(df: pd.DataFrame, file_path: str) -> str:
 
 
 def main():
-    jsonl_path = './data/vais-cdn-results.jsonl'
-    csv_path = './data/vais-cdn-results.csv'
-    desired_columns = ['query', 'title', 'url', 'snippet']
+    jsonl_path = './data/vais-batch-2-results.jsonl'
+    csv_path = './data/vais-batch-2-results.csv'
+    desired_columns = ['query', 'title', 'url', 'snippet', 'creation_date', 'modified_date', 'display_link']
     
     # Step 1: Read the JSONL file
     data = read_jsonl(jsonl_path)

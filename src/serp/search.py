@@ -1,20 +1,28 @@
-from typing import Optional
-from typing import Dict
-from typing import Any 
+from typing import Optional, Dict, Any, List
+from src.config.logging import logger
 import requests
-import logging
-import yaml 
+import yaml
 
 
 def load_api_key(file_path: str) -> Optional[str]:
+    """
+    Load the API key from a YAML file.
+
+    Parameters:
+        file_path (str): The path to the YAML file containing the API key.
+
+    Returns:
+        Optional[str]: The API key if found, otherwise None.
+    """
     try:
         with open(file_path, 'r') as file:
             config = yaml.safe_load(file)
+            logger.info("API key loaded successfully.")
             return config['serphouse']['key']
     except Exception as e:
-        print(e)
+        logger.error(f"Error loading API key: {e}")
         return None
-    
+
 
 def fetch_search_results(query: str) -> Dict[str, Any]:
     """
@@ -34,18 +42,21 @@ def fetch_search_results(query: str) -> Dict[str, Any]:
         "data": {
             "q": query,
             "domain": "google.com",
-    "lang": "en",
-    "device": "desktop",
-    "serp_type": "web",
-    "loc": "United States",
-    "verbatim": "0",
-    "gfilter": "0",
-    "page": "1",
-    "num_result": "10"
+            "lang": "en",
+            "device": "desktop",
+            "serp_type": "web",
+            "loc": "United States",
+            "verbatim": "0",
+            "gfilter": "0",
+            "page": "1",
+            "num_result": "10"
         }
     }
     api_key = load_api_key('./credentials/keys.yaml')
-    
+
+    if not api_key:
+        raise ValueError("API key is missing.")
+
     headers = {
         'accept': "application/json",
         'content-type': "application/json",
@@ -55,22 +66,43 @@ def fetch_search_results(query: str) -> Dict[str, Any]:
     try:
         response = requests.post(url, json=payload, headers=headers)
         response.raise_for_status()  # Raises an HTTPError for bad responses
+        logger.info("Search results fetched successfully.")
         return response.json()
     except requests.RequestException as e:
-        logging.error(f"Failed to fetch search results: {e}")
+        logger.error(f"Failed to fetch search results: {e}")
         raise
 
-if __name__ == "__main__":
-    query = "procter and gamble annual rpeort 2023 site:assets.ctfassets.net"
-    response = fetch_search_results(query)
-    results = response['results']['results']['organic']
-    for item in results:
-        rank = item['position']
-        title = item['title']
-        url = item['link']
-        snippet = item['snippet']
-        print(rank, title)
-        print(url)
-        print(snippet)
-        print('-' * 100)
 
+def get(query: str) -> List[Dict[str, str]]:
+    """
+    Process the search results and extract title, snippet, and link.
+
+    Parameters:
+        response (Dict[str, Any]): The JSON response from the API.
+
+    Returns:
+        List[Dict[str, str]]: A list of dictionaries containing title, snippet, and link.
+    """
+    try:
+        response = fetch_search_results(query)
+        results = response['results']['results']['organic']
+        processed_results = []
+        for item in results:
+            result = {
+                'title': item.get('title', 'NA'),
+                'snippet': item.get('snippet', 'NA'),
+                'link': item['link']
+            }
+            processed_results.append(result)
+        logger.info("Search results processed successfully.")
+        return processed_results
+    except KeyError as e:
+        logger.error(f"Error processing results: {e}")
+        raise
+
+
+
+if __name__ == "__main__":
+    query = "ViaSat, Inc. Sustainability Report 2023 filetype:pdf site:investors.viasat.com"
+    results = get(query)
+    print(results)
