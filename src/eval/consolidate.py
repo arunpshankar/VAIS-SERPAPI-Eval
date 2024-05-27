@@ -33,9 +33,7 @@ def save_dataframe(df: pd.DataFrame, output_path: str) -> None:
         output_path (str): The path to save the CSV file.
     """
     try:
-        # Sort the DataFrame by 'query' to group results together
-        df_sorted_by_query = df.sort_values(by=['query', 'rank'])
-        df_sorted_by_query.to_csv(output_path, index=False)
+        df.to_csv(output_path, index=False)
         logger.info(f"DataFrame saved successfully to {output_path}.")
     except Exception as e:
         logger.error(f"Error saving DataFrame to CSV: {e}")
@@ -46,14 +44,14 @@ def run() -> None:
     Main function to execute the data processing pipeline.
     """
     file_paths = [
-        './data/vais-batch-1-results.csv',
-        './data/vais-batch-2-results.csv',
-        './data/vais-cdn-results.csv'
+        './data/serp-batch-1-results.csv',
+        './data/serp-batch-2-results.csv',
+        './data/serp-cdn-results.csv'
     ]
     try:
-        combined_df = load_and_combine_csv(file_paths, logger)
-        output_path = './data/vais_consolidated_results.csv'
-        save_dataframe(combined_df, output_path, logger)
+        combined_df = load_and_combine_csv(file_paths)
+        output_path = './data/serp_consolidated_results.csv'
+        save_dataframe(combined_df, output_path)
         logger.info("Data processing pipeline completed successfully.")
     except Exception as e:
         logger.error(f"Error in data processing pipeline: {e}")
