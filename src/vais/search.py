@@ -177,8 +177,8 @@ def extract_relevant_data(response: Optional[discoveryengine.SearchResponse]) ->
                 creationdate = metatags[0].get('creationdate', None)
                 moddate = metatags[0].get('moddate', None)
             
-            data["creation_date"] = convert_to_human_readable_date(creationdate)
-            data["modified_date"] = convert_to_human_readable_date(moddate)
+                data["creation_date"] = convert_to_human_readable_date(creationdate)
+                data["modified_date"] = convert_to_human_readable_date(moddate)
 
         # Extracting display link 
         display_link = derived_struct_data.get("displayLink", None)
