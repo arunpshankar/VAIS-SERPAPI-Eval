@@ -105,7 +105,7 @@ def search_data_store(search_query: str, data_store_id: str) -> Optional[discove
         request = discoveryengine.SearchRequest(
             serving_config=serving_config,
             query=search_query,
-            page_size=30,
+            page_size=10,
             content_search_spec=content_search_spec,
             query_expansion_spec=discoveryengine.SearchRequest.QueryExpansionSpec(
                 condition=discoveryengine.SearchRequest.QueryExpansionSpec.Condition.AUTO,
@@ -143,8 +143,7 @@ def extract_relevant_data(response: Optional[discoveryengine.SearchResponse]) ->
             "snippet": "",
             "link": "", 
             "creation_date": "",
-            "modified_date": "",
-            "display_link": ""
+            "modified_date": ""
         }
 
         # Convert protocol buffer message to JSON
@@ -179,11 +178,6 @@ def extract_relevant_data(response: Optional[discoveryengine.SearchResponse]) ->
             
                 data["creation_date"] = convert_to_human_readable_date(creationdate)
                 data["modified_date"] = convert_to_human_readable_date(moddate)
-
-        # Extracting display link 
-        display_link = derived_struct_data.get("displayLink", None)
-        if display_link:
-            data["display_link"] = display_link
 
         extracted_data.append(data)
 
