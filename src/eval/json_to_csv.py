@@ -1,7 +1,9 @@
+
+from src.config.logging import logger
+from typing import List
+from typing import Dict
 import pandas as pd
 import json
-from src.config.logging import logger
-from typing import List, Dict
 
 
 def read_jsonl(file_path: str) -> List[Dict]:
@@ -60,9 +62,9 @@ def save_to_csv(df: pd.DataFrame, file_path: str) -> str:
 
 
 def main():
-    jsonl_path = './data/vais-cdn-results.jsonl'
-    csv_path = './data/vais-cdn-results.csv'
-    desired_columns = ['query', 'title', 'url', 'snippet', 'creation_date', 'modified_date', 'display_link']
+    jsonl_path = './data/vais-batch-2-results.jsonl'
+    csv_path = './data/vais-batch-2-results.csv'
+    desired_columns = ['query', 'title', 'url', 'snippet', 'creation_date', 'modified_date']
     
     # Step 1: Read the JSONL file
     data = read_jsonl(jsonl_path)
@@ -81,7 +83,7 @@ def main():
 
     logger.info(f'Process completed. CSV saved at {csv_path}')
 
-# Run the main function
+
 if __name__ == "__main__":
     main()
 

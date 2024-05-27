@@ -8,9 +8,9 @@ import csv
 import os 
 
 
-DATA_STORE_ID = 'vais-serp-evals-cdn_1716473240944'
+# DATA_STORE_ID = 'vais-serp-evals-cdn_1716473240944'
 # DATA_STORE_ID = 'vais-serp-evals-1_1716478399697'
-# DATA_STORE_ID = 'vais-serp-evals-2_1716478907619'
+DATA_STORE_ID = 'vais-serp-evals-2_1716478907619'
 
 
 def ensure_directory(path: str) -> None:
@@ -44,7 +44,7 @@ def evaluate(input_path: str, output_path: str) -> None:
             for row in reader:
                 company_name = row['company_name'].strip()
                 url = row['url'].strip()
-                search_query = f"{company_name} Sustainability ESG Report 2023 filetype:pdf site:{url}"
+                search_query = f"{company_name} Sustainability Report 2023 filetype:pdf site:{url}"
                 logger.info(f'Searching with Query: {search_query}')
                 logger.debug(f"Constructed search query: {search_query}")
                 
@@ -62,6 +62,6 @@ def evaluate(input_path: str, output_path: str) -> None:
 
 
 if __name__ == "__main__":
-    input_csv_path = "./data/test-cdn.csv"
-    output_jsonl_path = "./data/vais-cdn-results.jsonl"
+    input_csv_path = "./data/test-2.csv"
+    output_jsonl_path = "./data/vais-batch-2-results.jsonl"
     evaluate(input_csv_path, output_jsonl_path)

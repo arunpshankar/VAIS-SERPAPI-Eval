@@ -44,13 +44,13 @@ def run() -> None:
     Main function to execute the data processing pipeline.
     """
     file_paths = [
-        './data/serp-batch-1-results.csv',
-        './data/serp-batch-2-results.csv',
-        './data/serp-cdn-results.csv'
+        './data/vais-batch-1-results.csv',
+        './data/vais-batch-2-results.csv',
+        './data/vais-cdn-results.csv'
     ]
     try:
         combined_df = load_and_combine_csv(file_paths)
-        output_path = './data/serp_consolidated_results.csv'
+        output_path = './data/vais_consolidated_results.csv'
         save_dataframe(combined_df, output_path)
         logger.info("Data processing pipeline completed successfully.")
     except Exception as e:
